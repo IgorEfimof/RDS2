@@ -1,794 +1,861 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <link rel="apple-touch-icon" sizes="180x180" href="icons/icon180.png">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="RDS2">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <title>Рапидо Старт</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Статистика лотереи</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* Обновлённые стили */
-        :root {
-            --bg-color: #f5f5f7;
-            --text-color: #1c1c1e;
-            --card-bg: white;
-            --border-color: #ddd;
-            --primary-color: #0066cc;
-            --secondary-color: #ff2d55;
-            --keyboard-bg: #e5e5ea;
-            --button-active: #004499;
-            --history-border: #eee;
-            --selected-color: #34c759;
-            --special-color: #af52de;
-        }
-
-        .dark-mode {
-            --bg-color: #1c1c1e;
-            --text-color: #f5f5f7;
-            --card-bg: #2c2c2e;
-            --border-color: #444;
-            --primary-color: #0a84ff;
-            --secondary-color: #ff375f;
-            --keyboard-bg: #3a3a3c;
-            --button-active: #0061c8;
-            --history-border: #444;
-            --selected-color: #30d158;
-            --special-color: #bf5af2;
-        }
-
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            transition: background-color 0.3s, color 0.3s;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
+        
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            padding: 10px;
-            background: var(--bg-color);
-            color: var(--text-color);
-            max-width: 100%;
-            margin: 0 auto;
-            -webkit-user-select: none;
-            user-select: none;
-            touch-action: manipulation;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
         }
+        
         .container {
-            max-width: 100%;
-            width: 100%;
+            max-width: 1200px;
             margin: 0 auto;
-            padding-bottom: 280px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
         }
-        h1 {
-            font-size: 1.5rem;
-            text-align: center;
-            color: var(--primary-color);
-            margin-bottom: 5px;
+        
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
         }
-        .subtitle {
-            text-align: center;
-            color: var(--text-color);
-            opacity: 0.8;
-            margin-bottom: 15px;
-            font-size: 0.9rem;
-        }
+        
         .card {
-            background: var(--card-bg);
-            border-radius: 12px;
-            padding: 12px;
-            margin-bottom: 12px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.92);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            padding: 25px;
+            margin-bottom: 20px;
+            transition: transform 0.3s, box-shadow 0.3s;
         }
-        h2 {
-            color: var(--primary-color);
-            font-size: 1.2rem;
-            margin-bottom: 8px;
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
         }
-        h3 {
-            color: var(--primary-color);
-            font-size: 1rem;
-            margin: 10px 0 5px;
+        
+        h1, h2 {
+            color: #1a2a6c;
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
         }
-        .numbers {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin: 8px 0;
-        }
-        .number {
-            width: 36px;
-            height: 36px;
-            border-radius: 18px;
-            background: var(--primary-color);
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-top: 10px;
             color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 15px;
-            transition: transform 0.2s;
+            flex-direction: column;
         }
-        .number.selected {
-            background: var(--selected-color);
-            transform: scale(1.1);
+        
+        label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #444;
         }
-        .number.small {
-            background: var(--secondary-color);
-            width: 36px;
+        
+        input, select {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
         }
-        .number.special {
-            background: var(--special-color);
+        
+        input:focus, select:focus {
+            border-color: #1a2a6c;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(26, 42, 108, 0.2);
         }
+        
+        .error {
+            color: #d32f2f;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+        
         button {
-            width: 100%;
-            padding: 10px;
-            background: var(--primary-color);
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f);
             color: white;
             border: none;
+            padding: 12px 20px;
             border-radius: 8px;
-            font-size: 15px;
-            font-weight: 500;
             cursor: pointer;
-            margin-top: 8px;
-            -webkit-tap-highlight-color: transparent;
-        }
-        button:active {
-            background: var(--button-active);
-        }
-        button.secondary {
-            background: var(--keyboard-bg);
-            color: var(--text-color);
-        }
-        #fakeInput {
-            position: absolute;
-            opacity: 0;
-            height: 0;
-            width: 0;
-        }
-        #inputDisplay {
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: block;
             width: 100%;
-            min-height: 70px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 8px;
-            margin-bottom: 8px;
-            font-size: 15px;
-            background: var(--card-bg);
-            word-wrap: break-word;
-            color: var(--text-color);
+            margin: 10px 0;
         }
-        .input-active {
-            border-color: var(--primary-color);
-            box-shadow: 0 0 0 2px rgba(0,102,204,0.2);
+        
+        button:hover {
+            background: linear-gradient(135deg, #23348e, #d32f2f);
+            transform: translateY(-2px);
         }
-        .stats-table {
+        
+        .secondary-btn {
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+        }
+        
+        .secondary-btn:hover {
+            background: linear-gradient(135deg, #66BB6A, #388E3C);
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-group button {
+            flex: 1;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a2a6c;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #555;
+        }
+        
+        .negative {
+            color: #d32f2f;
+        }
+        
+        .positive {
+            color: #2E7D32;
+        }
+        
+        table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 5px;
-            font-size: 13px;
+            margin-top: 20px;
         }
-        .stats-table th, .stats-table td {
-            padding: 6px;
+        
+        th, td {
+            padding: 12px 15px;
             text-align: left;
-            border-bottom: 1px solid var(--history-border);
+            border-bottom: 1px solid #ddd;
         }
-        .hot {
-            color: var(--secondary-color);
-            font-weight: bold;
-        }
-        .cold {
-            color: var(--primary-color);
-            font-weight: bold;
-        }
-        .history-item {
-            padding: 8px 0;
-            border-bottom: 1px solid var(--history-border);
-            font-size: 13px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .history-item button {
-            width: auto;
-            padding: 2px 8px;
-            margin: 0;
-            background: var(--secondary-color);
+        
+        th {
+            background: linear-gradient(135deg, #1a2a6c, #23348e);
             color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
+            position: sticky;
+            top: 0;
         }
-        .custom-keyboard {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--keyboard-bg);
-            padding: 8px;
-            border-top: 1px solid var(--border-color);
-            z-index: 1000;
-            display: none;
-            flex-direction: column;
-            gap: 6px;
+        
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
         }
-        .keyboard-row {
-            display: flex;
-            justify-content: space-between;
-            gap: 6px;
+        
+        tr:hover {
+            background-color: #e3f2fd;
         }
-        .keyboard-key {
-            flex: 1;
-            height: 48px;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-            color: var(--text-color);
+        
+        .canvas-container {
+            height: 300px;
+            margin-top: 20px;
         }
-        .keyboard-key:active {
-            background: var(--history-border);
+        
+        .probability-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
         }
-        .keyboard-key.wide {
-            flex: 2;
-        }
-        .keyboard-key.blue {
-            background: var(--primary-color);
-            color: white;
-        }
-        .keyboard-key.red {
-            background: var(--secondary-color);
-            color: white;
-        }
-        .theme-toggle {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            width: 40px;
-            height: 40px;
-            border-radius: 20px;
-            background: var(--primary-color);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            z-index: 1000;
-            border: none;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-        .validation-error {
-            color: var(--secondary-color);
-            font-size: 12px;
-            margin-top: 5px;
-            display: none;
-        }
-        .method-selector {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-        .method-btn {
-            flex: 1;
-            padding: 8px;
+        
+        .probability-card {
+            background: linear-gradient(135deg, #f5f5f5, #e0e0e0);
+            border-radius: 10px;
+            padding: 15px;
             text-align: center;
-            background: var(--keyboard-bg);
-            border-radius: 8px;
-            font-size: 13px;
-            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        .method-btn.active {
-            background: var(--primary-color);
-            color: white;
+        
+        .prize-table {
+            width: 100%;
+            margin-top: 20px;
         }
-        .info-icon {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border-radius: 8px;
-            background: var(--primary-color);
-            color: white;
+        
+        .prize-table th {
+            background: linear-gradient(135deg, #b21f1f, #d32f2f);
+        }
+        
+        .highlight {
+            animation: highlight 2s ease;
+        }
+        
+        @keyframes highlight {
+            0% { background-color: #ffffcc; }
+            100% { background-color: transparent; }
+        }
+        
+        .footer {
             text-align: center;
-            line-height: 16px;
-            font-size: 12px;
-            margin-left: 5px;
-            cursor: help;
+            color: white;
+            margin-top: 20px;
+            padding: 10px;
+            font-size: 14px;
         }
     </style>
 </head>
 <body>
-    <button class="theme-toggle" id="themeToggle">🌓</button>
+    <h1>Статистика лотерейных билетов</h1>
     
     <div class="container">
-        <div class="card">
-            <h1>Рапидо Старт</h1>
-            <p class="subtitle">Анализ с методами Огнева и Карнауха</p>
-        </div>
-        
-        <div class="card">
-            <h2>Сгенерировать числа</h2>
-            <div class="method-selector">
-                <div class="method-btn active" data-method="cold">Холодные</div>
-                <div class="method-btn" data-method="ogneva">Огнева<span class="info-icon" title="Характеристическое число">?</span></div>
-                <div class="method-btn" data-method="karnaugh">Карнауха<span class="info-icon" title="Метод математика П.В. Карнауха">?</span></div>
-                <div class="method-btn" data-method="random">Случайные</div>
+        <!-- Левая колонка -->
+        <div class="left-column">
+            <div class="card">
+                <h2>Данные билета</h2>
+                <div class="input-group">
+                    <label for="ticket-cost">Стоимость билета (₽):</label>
+                    <input type="number" id="ticket-cost" placeholder="Введите стоимость" min="1">
+                    <div class="error" id="cost-error">Введите положительное число</div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="draw-number">Номер тиража:</label>
+                    <input type="number" id="draw-number" placeholder="Введите номер тиража" min="1">
+                    <div class="error" id="draw-error">Введите номер тиража</div>
+                </div>
+                
+                <div class="input-group">
+                    <label for="guessed-first">Угадано чисел в 1-й части поля:</label>
+                    <select id="guessed-first">
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label for="guessed-second">Угадано чисел во 2-й части поля:</label>
+                    <select id="guessed-second">
+                        <option value="0">0</option>
+                        <option value="1">1</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label for="super-prize">Сумма суперприза (если есть):</label>
+                    <input type="number" id="super-prize" placeholder="Введите сумму суперприза" min="0" value="0">
+                </div>
+                
+                <button id="add-stats">Добавить данные</button>
+                <button id="reset-stats" class="secondary-btn">Сбросить статистику</button>
             </div>
-            <p>Поле 1 (8 из 20):</p>
-            <div class="numbers" id="field1"></div>
-            <p>Поле 2 (1 из 4):</p>
-            <div class="numbers" id="field2"></div>
-            <button id="genBtn">Сгенерировать</button>
-        </div>
-        
-        <div class="card">
-            <h2>Добавить историю</h2>
-            <div id="inputContainer" style="position:relative;">
-                <input type="text" id="fakeInput" readonly />
-                <div id="inputDisplay" onclick="showKeyboard()">Коснитесь для ввода (формат: 1,2,3,4,5,6,7,8 | 1)</div>
-                <div id="validationError" class="validation-error"></div>
+            
+            <div class="card">
+                <h2>Основная статистика</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Билетов куплено</div>
+                        <div class="stat-value" id="tickets-count">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Потрачено (₽)</div>
+                        <div class="stat-value" id="total-spent">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Выиграно (₽)</div>
+                        <div class="stat-value" id="total-won">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Баланс (₽)</div>
+                        <div class="stat-value" id="balance">0</div>
+                    </div>
+                </div>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Средний выигрыш</div>
+                        <div class="stat-value" id="avg-win">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Макс. выигрыш</div>
+                        <div class="stat-value" id="max-win">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Билетов до безубытка</div>
+                        <div class="stat-value" id="break-even-tickets">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Сумма до безубытка</div>
+                        <div class="stat-value" id="break-even">0</div>
+                    </div>
+                </div>
             </div>
-            <button id="addHistoryBtn">Добавить</button>
+            
+            <div class="card">
+                <h2>Таблица призов</h2>
+                <table class="prize-table">
+                    <thead>
+                        <tr>
+                            <th>1-я часть</th>
+                            <th>2-я часть</th>
+                            <th>Выигрыш</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>8</td><td>1</td><td>Суперприз</td></tr>
+                        <tr><td>8</td><td>0</td><td>25 000 ₽</td></tr>
+                        <tr><td>7</td><td>1</td><td>5 000 ₽</td></tr>
+                        <tr><td>7</td><td>0</td><td>1 000 ₽</td></tr>
+                        <tr><td>6</td><td>1</td><td>175 ₽</td></tr>
+                        <tr><td>6</td><td>0</td><td>150 ₽</td></tr>
+                        <tr><td>5</td><td>1</td><td>100 ₽</td></tr>
+                        <tr><td>5</td><td>0</td><td>50 ₽</td></tr>
+                        <tr><td>4</td><td>1</td><td>25 ₽</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
         
-        <div class="card">
-            <h2>Статистика чисел</h2>
-            <table class="stats-table" id="statsTable"></table>
-        </div>
-        
-        <div class="card" style="max-height: 300px; overflow-y: auto;">
-            <h2>История розыгрышей</h2>
-            <div id="historyList"></div>
-            <button id="clearHistoryBtn" class="secondary">Очистить историю</button>
+        <!-- Правая колонка -->
+        <div class="right-column">
+            <div class="card">
+                <h2>График баланса</h2>
+                <div class="canvas-container">
+                    <canvas id="balance-chart"></canvas>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>История операций</h2>
+                <div class="btn-group">
+                    <button id="export-csv">Экспорт в CSV</button>
+                    <button id="clear-history" class="secondary-btn">Очистить историю</button>
+                </div>
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <table id="stats-history">
+                        <thead>
+                            <tr>
+                                <th>№</th>
+                                <th>Тираж</th>
+                                <th>Стоимость</th>
+                                <th>1 часть</th>
+                                <th>2 часть</th>
+                                <th>Выигрыш</th>
+                                <th>Баланс</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Данные будут добавляться сюда -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2>Вероятности и ожидания</h2>
+                <div class="probability-grid">
+                    <div class="probability-card">
+                        <div class="stat-label">Вероятность выигрыша</div>
+                        <div class="stat-value" id="win-probability">0.00%</div>
+                    </div>
+                    <div class="probability-card">
+                        <div class="stat-label">Мат. ожидание</div>
+                        <div class="stat-value" id="expected-value">0 ₽</div>
+                    </div>
+                    <div class="probability-card">
+                        <div class="stat-label">Вер. суперприза</div>
+                        <div class="stat-value" id="super-probability">0.00001%</div>
+                    </div>
+                    <div class="probability-card">
+                        <div class="stat-label">ROI</div>
+                        <div class="stat-value" id="roi">0.00%</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <h3>Расчет вероятности безубытка</h3>
+                    <p>Для покрытия текущего проигрыша в размере <span id="current-loss">0</span> ₽ с вероятностью 50% потребуется купить около <span id="prob-tickets">0</span> билетов.</p>
+                    <p>С вероятностью 90% потребуется около <span id="prob-tickets-90">0</span> билетов.</p>
+                </div>
+            </div>
         </div>
     </div>
-
-    <div class="custom-keyboard" id="customKeyboard">
-        <div class="keyboard-row">
-            <div class="keyboard-key">1</div>
-            <div class="keyboard-key">2</div>
-            <div class="keyboard-key">3</div>
-            <div class="keyboard-key">4</div>
-            <div class="keyboard-key">5</div>
-            <div class="keyboard-key">6</div>
-            <div class="keyboard-key">7</div>
-            <div class="keyboard-key">8</div>
-            <div class="keyboard-key">9</div>
-            <div class="keyboard-key wide red" id="keyDelete">⌫</div>
-        </div>
-        <div class="keyboard-row">
-            <div class="keyboard-key">0</div>
-            <div class="keyboard-key">,</div>
-            <div class="keyboard-key">|</div>
-            <div class="keyboard-key wide blue" id="keyDone">Готово</div>
-        </div>
-    </div>
-
-<script>
-    // --- Тема ---
-    const themeToggle = document.getElementById('themeToggle');
-    function applyTheme(dark) {
-        if(dark) {
-            document.documentElement.classList.add('dark-mode');
-            localStorage.setItem('darkMode', 'true');
-        } else {
-            document.documentElement.classList.remove('dark-mode');
-            localStorage.setItem('darkMode', 'false');
-        }
-    }
-    themeToggle.onclick = () => {
-        const dark = document.documentElement.classList.contains('dark-mode');
-        applyTheme(!dark);
-    };
-    // Инициализация темы по сохранённому значению
-    applyTheme(localStorage.getItem('darkMode') === 'true');
-
-    // --- История ---
-    let history = JSON.parse(localStorage.getItem('rapido2History') || '[]');
     
-    // --- Отображение истории ---
-    const historyList = document.getElementById('historyList');
-    function renderHistory() {
-        historyList.innerHTML = '';
-        history.forEach((entry, idx) => {
-            const div = document.createElement('div');
-            div.className = 'history-item';
-            div.innerHTML = `
-                <span>${entry}</span>
-                <button data-idx="${idx}">X</button>
+    <div class="footer">
+        Статистика лотерейных билетов &copy; 2023 | Данные сохраняются в вашем браузере
+    </div>
+
+    <script>
+        // Объект с призами
+        const PRIZES = {
+            '8-1': {name: 'Суперприз', amount: 0},
+            '8-0': {name: '25 000 ₽', amount: 25000},
+            '7-1': {name: '5 000 ₽', amount: 5000},
+            '7-0': {name: '1 000 ₽', amount: 1000},
+            '6-1': {name: '175 ₽', amount: 175},
+            '6-0': {name: '150 ₽', amount: 150},
+            '5-1': {name: '100 ₽', amount: 100},
+            '5-0': {name: '50 ₽', amount: 50},
+            '4-1': {name: '25 ₽', amount: 25},
+            'default': {name: 'Не выиграл', amount: 0}
+        };
+        
+        // Теоретические вероятности выигрышей (примерные)
+        const PROBABILITIES = {
+            '8-1': 0.0000001,
+            '8-0': 0.0000005,
+            '7-1': 0.00001,
+            '7-0': 0.00005,
+            '6-1': 0.0005,
+            '6-0': 0.001,
+            '5-1': 0.005,
+            '5-0': 0.01,
+            '4-1': 0.05,
+            'default': 0.9334
+        };
+        
+        // Инициализация статистики
+        let stats = {
+            ticketsCount: 0,
+            totalSpent: 0,
+            totalWon: 0,
+            history: [],
+            maxWin: 0
+        };
+        
+        // Инициализация Chart.js
+        let balanceChart;
+        const ctx = document.getElementById('balance-chart').getContext('2d');
+        
+        // DOM элементы
+        const ticketsCountEl = document.getElementById('tickets-count');
+        const totalSpentEl = document.getElementById('total-spent');
+        const totalWonEl = document.getElementById('total-won');
+        const balanceEl = document.getElementById('balance');
+        const breakEvenTicketsEl = document.getElementById('break-even-tickets');
+        const breakEvenEl = document.getElementById('break-even');
+        const avgWinEl = document.getElementById('avg-win');
+        const maxWinEl = document.getElementById('max-win');
+        const statsHistoryEl = document.getElementById('stats-history').querySelector('tbody');
+        const winProbabilityEl = document.getElementById('win-probability');
+        const expectedValueEl = document.getElementById('expected-value');
+        const superProbabilityEl = document.getElementById('super-probability');
+        const roiEl = document.getElementById('roi');
+        const currentLossEl = document.getElementById('current-loss');
+        const probTicketsEl = document.getElementById('prob-tickets');
+        const probTickets90El = document.getElementById('prob-tickets-90');
+        
+        // Загрузка данных из localStorage
+        function loadStats() {
+            const savedStats = localStorage.getItem('lotteryStats');
+            if (savedStats) {
+                stats = JSON.parse(savedStats);
+                updateStats();
+                renderHistory();
+                updateChart();
+            }
+        }
+        
+        // Сохранение данных в localStorage
+        function saveStats() {
+            localStorage.setItem('lotteryStats', JSON.stringify(stats));
+        }
+        
+        // Расчет выигрыша
+        function calculateWin(first, second) {
+            const key = `${first}-${second}`;
+            const prize = PRIZES[key] || PRIZES['default'];
+            
+            // Если суперприз, используем значение из поля ввода
+            if (key === '8-1') {
+                const superPrize = Number(document.getElementById('super-prize').value) || 0;
+                return {
+                    name: 'Суперприз',
+                    amount: superPrize
+                };
+            }
+            
+            return prize;
+        }
+        
+        // Обновление статистики
+        function updateStats() {
+            ticketsCountEl.textContent = stats.ticketsCount;
+            totalSpentEl.textContent = stats.totalSpent.toLocaleString('ru-RU');
+            totalWonEl.textContent = stats.totalWon.toLocaleString('ru-RU');
+            
+            const balance = stats.totalWon - stats.totalSpent;
+            balanceEl.textContent = balance.toLocaleString('ru-RU');
+            
+            // Обновление классов для цвета баланса
+            balanceEl.className = 'stat-value ' + (balance >= 0 ? 'positive' : 'negative');
+            
+            // Расчет среднего выигрыша
+            const avgWin = stats.ticketsCount > 0 ? stats.totalWon / stats.ticketsCount : 0;
+            avgWinEl.textContent = avgWin.toLocaleString('ru-RU', {maximumFractionDigits: 2});
+            
+            // Расчет для покрытия проигрыша
+            if (balance < 0) {
+                const avgTicketCost = stats.ticketsCount > 0 ? stats.totalSpent / stats.ticketsCount : 0;
+                const breakEvenTickets = Math.ceil(-balance / avgTicketCost);
+                const breakEvenAmount = breakEvenTickets * avgTicketCost;
+                
+                breakEvenTicketsEl.textContent = breakEvenTickets;
+                breakEvenEl.textContent = breakEvenAmount.toLocaleString('ru-RU', {maximumFractionDigits: 2});
+            } else {
+                breakEvenTicketsEl.textContent = '0';
+                breakEvenEl.textContent = '0';
+            }
+            
+            // Обновление максимального выигрыша
+            maxWinEl.textContent = stats.maxWin.toLocaleString('ru-RU');
+            
+            // Расчет вероятностей
+            calculateProbabilities();
+            
+            // Сохранение статистики
+            saveStats();
+        }
+        
+        // Расчет вероятностей
+        function calculateProbabilities() {
+            // Вероятность любого выигрыша
+            let winProbability = 0;
+            for (const key in PROBABILITIES) {
+                if (key !== 'default') {
+                    winProbability += PROBABILITIES[key];
+                }
+            }
+            winProbabilityEl.textContent = (winProbability * 100).toFixed(2) + '%';
+            
+            // Математическое ожидание выигрыша
+            let expectedValue = 0;
+            for (const key in PROBABILITIES) {
+                const prizeAmount = key === '8-1' ? (Number(document.getElementById('super-prize').value) || 0) : 
+                               (PRIZES[key] ? PRIZES[key].amount : 0);
+                expectedValue += PROBABILITIES[key] * prizeAmount;
+            }
+            expectedValueEl.textContent = expectedValue.toLocaleString('ru-RU', {maximumFractionDigits: 2}) + ' ₽';
+            
+            // Вероятность суперприза
+            superProbabilityEl.textContent = (PROBABILITIES['8-1'] * 100).toFixed(5) + '%';
+            
+            // ROI (Return on Investment)
+            const roi = stats.ticketsCount > 0 ? ((stats.totalWon - stats.totalSpent) / stats.totalSpent) * 100 : 0;
+            roiEl.textContent = roi.toFixed(2) + '%';
+            
+            // Вероятностный расчет для покрытия проигрыша
+            const balance = stats.totalWon - stats.totalSpent;
+            currentLossEl.textContent = (-balance).toLocaleString('ru-RU');
+            
+            if (balance < 0) {
+                const avgTicketCost = stats.ticketsCount > 0 ? stats.totalSpent / stats.ticketsCount : 0;
+                const loss = -balance;
+                
+                // Упрощенный расчет (для демонстрации)
+                const tickets50 = Math.ceil(loss / expectedValue);
+                const tickets90 = Math.ceil(loss / (expectedValue * 0.5));
+                
+                probTicketsEl.textContent = tickets50;
+                probTickets90El.textContent = tickets90;
+            } else {
+                probTicketsEl.textContent = '0';
+                probTickets90El.textContent = '0';
+            }
+        }
+        
+        // Добавление в историю
+        function addToHistory(ticket) {
+            const row = document.createElement('tr');
+            
+            // Рассчитываем баланс для этой операции
+            const balance = ticket.win.amount - ticket.cost;
+            
+            row.innerHTML = `
+                <td>${stats.ticketsCount}</td>
+                <td>${ticket.drawNumber}</td>
+                <td>${ticket.cost.toLocaleString('ru-RU')} ₽</td>
+                <td>${ticket.first}</td>
+                <td>${ticket.second}</td>
+                <td>${ticket.win.name} ${ticket.win.amount > 0 ? '(' + ticket.win.amount.toLocaleString('ru-RU') + ' ₽)' : ''}</td>
+                <td class="${balance >= 0 ? 'positive' : 'negative'}">${balance.toLocaleString('ru-RU')} ₽</td>
             `;
-            historyList.appendChild(div);
-        });
-    }
-    renderHistory();
-    
-    // Удаление записи
-    historyList.addEventListener('click', e => {
-        if(e.target.tagName === 'BUTTON') {
-            const idx = +e.target.dataset.idx;
-            history.splice(idx, 1);
-            saveHistory();
-            renderHistory();
-            updateStats();
-        }
-    });
-    
-    // Очистка истории
-    document.getElementById('clearHistoryBtn').onclick = () => {
-        if(confirm('Очистить всю историю?')) {
-            history = [];
-            saveHistory();
-            renderHistory();
-            updateStats();
-            generateNumbers();
-        }
-    };
-
-    function saveHistory() {
-        localStorage.setItem('rapido2History', JSON.stringify(history));
-    }
-
-    // --- Ввод ---
-    const inputDisplay = document.getElementById('inputDisplay');
-    const fakeInput = document.getElementById('fakeInput');
-    const customKeyboard = document.getElementById('customKeyboard');
-    const validationError = document.getElementById('validationError');
-
-    function showKeyboard() {
-        customKeyboard.style.display = 'flex';
-        inputDisplay.classList.add('input-active');
-        validationError.style.display = 'none';
-    }
-    function hideKeyboard() {
-        customKeyboard.style.display = 'none';
-        inputDisplay.classList.remove('input-active');
-    }
-
-    // Отобразить введённый текст
-    function updateInputDisplay() {
-        inputDisplay.textContent = fakeInput.value || 'Коснитесь для ввода (формат: 1,2,3,4,5,6,7,8 | 1)';
-    }
-
-    // Клавиши виртуальной клавиатуры
-    customKeyboard.addEventListener('click', e => {
-        if(!e.target.classList.contains('keyboard-key')) return;
-        const key = e.target.textContent;
-        if(key === 'Готово') {
-            hideKeyboard();
-            return;
-        }
-        if(key === '⌫') {
-            fakeInput.value = fakeInput.value.slice(0, -1);
-            updateInputDisplay();
-            return;
-        }
-        // Разрешаем цифры, запятую и вертикальную черту
-        if(/[0-9,|]/.test(key)) {
-            fakeInput.value += key;
-            updateInputDisplay();
-        }
-    });
-
-    inputDisplay.onclick = showKeyboard;
-
-    // --- Валидация ввода ---
-    function validateInput(val) {
-        validationError.style.display = 'none';
-        
-        // Проверка формата
-        if(!/^(\d{1,2},){7}\d{1,2}\s*\|\s*\d{1,2}$/.test(val)) {
-            validationError.textContent = 'Неверный формат. Пример: 1,2,3,4,5,6,7,8 | 1';
-            validationError.style.display = 'block';
-            return false;
-        }
-        
-        const [field1, field2] = val.split(/\s*\|\s*/);
-        const nums1 = field1.split(',').map(n => parseInt(n));
-        const num2 = parseInt(field2);
-        
-        // Проверка диапазонов
-        const invalid1 = nums1.filter(n => n < 1 || n > 20);
-        if(invalid1.length > 0) {
-            validationError.textContent = `Числа в поле 1 должны быть от 1 до 20. Ошибка: ${invalid1.join(', ')}`;
-            validationError.style.display = 'block';
-            return false;
-        }
-        
-        if(num2 < 1 || num2 > 4) {
-            validationError.textContent = 'Число в поле 2 должно быть от 1 до 4';
-            validationError.style.display = 'block';
-            return false;
-        }
-        
-        // Проверка дубликатов в поле 1
-        const unique = new Set(nums1);
-        if(unique.size !== 8) {
-            validationError.textContent = 'В поле 1 не должно быть повторяющихся чисел';
-            validationError.style.display = 'block';
-            return false;
-        }
-        
-        return true;
-    }
-
-    // --- Добавление в историю ---
-    document.getElementById('addHistoryBtn').onclick = () => {
-        const val = fakeInput.value.trim();
-        if(!val) {
-            validationError.textContent = 'Введите числа в формате: 1,2,3,4,5,6,7,8 | 1';
-            validationError.style.display = 'block';
-            return;
-        }
-        
-        if(!validateInput(val)) return;
-        
-        // Проверка дубликатов в истории
-        if(history.includes(val)) {
-            validationError.textContent = 'Эта комбинация уже есть в истории';
-            validationError.style.display = 'block';
-            return;
-        }
-        
-        history.push(val);
-        saveHistory();
-        renderHistory();
-        updateStats();
-        fakeInput.value = '';
-        updateInputDisplay();
-        hideKeyboard();
-        
-        // Обновляем генерацию после добавления
-        generateNumbers();
-    };
-
-    // --- Статистика ---
-    const statsTable = document.getElementById('statsTable');
-
-    function updateStats() {
-        // Считаем частоты для обоих полей
-        const countField1 = Array(20).fill(0);
-        const countField2 = Array(4).fill(0);
-
-        history.forEach(entry => {
-            const parts = entry.split(/\s*\|\s*/);
-            if(parts.length !== 2) return;
-            const nums1 = parts[0].split(',').map(n => parseInt(n));
-            const nums2 = parseInt(parts[1]);
-
-            nums1.forEach(n => {
-                if(n >= 1 && n <= 20) countField1[n - 1]++;
-            });
-            if(nums2 >= 1 && nums2 <= 4) countField2[nums2 - 1]++;
-        });
-
-        let html = '<tr><th>Число (8 из 20)</th><th>Частота</th><th>Число (1 из 4)</th><th>Частота</th></tr>';
-
-        for(let i = 0; i < 20; i++) {
-            const hotColdClass1 = countField1[i] > 0 ? 'hot' : 'cold';
-            const hotColdClass2 = (i < 4 && countField2[i] > 0) ? 'hot' : 'cold';
-            html += `<tr>
-                <td>${i + 1}</td>
-                <td class="${hotColdClass1}">${countField1[i]}</td>
-                <td>${i < 4 ? i + 1 : ''}</td>
-                <td>${i < 4 ? countField2[i] : ''}</td>
-            </tr>`;
-        }
-        statsTable.innerHTML = html;
-    }
-    
-    // --- Методы генерации ---
-    let currentMethod = 'cold';
-    
-    // Переключение методов
-    document.querySelectorAll('.method-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            currentMethod = btn.dataset.method;
-            generateNumbers();
-        });
-    });
-    
-    // Основная функция генерации
-    function generateNumbers() {
-        switch(currentMethod) {
-            case 'cold':
-                generateColdNumbers();
-                break;
-            case 'ogneva':
-                generateOgnevaNumbers();
-                break;
-            case 'karnaugh':
-                generateKarnaughNumbers();
-                break;
-            case 'random':
-                generateRandomNumbers();
-                break;
-            default:
-                generateColdNumbers();
-        }
-    }
-    
-    // Метод холодных чисел
-    function generateColdNumbers() {
-        const countField1 = Array(20).fill(0);
-        const countField2 = Array(4).fill(0);
-
-        history.forEach(entry => {
-            const parts = entry.split(/\s*\|\s*/);
-            if(parts.length !== 2) return;
-            const nums1 = parts[0].split(',').map(n => parseInt(n));
-            const nums2 = parseInt(parts[1]);
-
-            nums1.forEach(n => {
-                if(n >= 1 && n <= 20) countField1[n - 1]++;
-            });
-            if(nums2 >= 1 && nums2 <= 4) countField2[nums2 - 1]++;
-        });
-
-        if(history.length === 0) {
-            generateRandomNumbers();
-            return;
-        }
-
-        // Выбираем 8 самых редких чисел для первого поля
-        let numbers1 = Array.from({ length: 20 }, (_, i) => i + 1);
-        numbers1.sort((a, b) => countField1[a - 1] - countField1[b - 1]);
-        const selected1 = numbers1.slice(0, 8).sort((a, b) => a - b);
-
-        // Для второго поля выбираем самое редкое число
-        let numbers2 = Array.from({ length: 4 }, (_, i) => i + 1);
-        numbers2.sort((a, b) => countField2[a - 1] - countField2[b - 1]);
-        const selected2 = numbers2[0];
-
-        displayNumbers(selected1, selected2, 'cold');
-    }
-    
-    // Метод Огнева (характеристическое число)
-    function generateOgnevaNumbers() {
-        if(history.length < 5) {
-            generateColdNumbers();
-            return;
-        }
-        
-        // Рассчитываем среднее характеристическое число
-        let totalOgneva = 0;
-        history.forEach(entry => {
-            const parts = entry.split(/\s*\|\s*/);
-            if(parts.length !== 2) return;
-            const nums1 = parts[0].split(',').map(Number);
-            const num2 = parseInt(parts[1]);
-            const sum1 = nums1.reduce((a, b) => a + b, 0);
-            totalOgneva += sum1 * num2;
-        });
-        const avgOgneva = totalOgneva / history.length;
-        
-        // Генерируем комбинации и выбираем лучшую
-        let bestCombination = null;
-        let bestDiff = Infinity;
-        
-        for(let i = 0; i < 50; i++) {
-            const nums1 = [];
-            while(nums1.length < 8) {
-                const n = Math.floor(Math.random() * 20) + 1;
-                if(!nums1.includes(n)) nums1.push(n);
-            }
-            nums1.sort((a, b) => a - b);
-            const num2 = Math.floor(Math.random() * 4) + 1;
             
-            const sum1 = nums1.reduce((a, b) => a + b, 0);
-            const ogneva = sum1 * num2;
-            const diff = Math.abs(ogneva - avgOgneva);
+            // Добавляем анимацию для новых записей
+            row.classList.add('highlight');
             
-            if(diff < bestDiff) {
-                bestDiff = diff;
-                bestCombination = { nums1, num2 };
+            statsHistoryEl.prepend(row);
+        }
+        
+        // Обновление всей истории
+        function renderHistory() {
+            statsHistoryEl.innerHTML = '';
+            
+            // Отображаем историю в обратном порядке (последние сверху)
+            for (let i = stats.history.length - 1; i >= 0; i--) {
+                const ticket = stats.history[i];
+                const balance = ticket.win.amount - ticket.cost;
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${i + 1}</td>
+                    <td>${ticket.drawNumber}</td>
+                    <td>${ticket.cost.toLocaleString('ru-RU')} ₽</td>
+                    <td>${ticket.first}</td>
+                    <td>${ticket.second}</td>
+                    <td>${ticket.win.name} ${ticket.win.amount > 0 ? '(' + ticket.win.amount.toLocaleString('ru-RU') + ' ₽)' : ''}</td>
+                    <td class="${balance >= 0 ? 'positive' : 'negative'}">${balance.toLocaleString('ru-RU')} ₽</td>
+                `;
+                statsHistoryEl.appendChild(row);
             }
         }
         
-        if(bestCombination) {
-            displayNumbers(bestCombination.nums1, bestCombination.num2, 'ogneva');
-        } else {
-            generateRandomNumbers();
-        }
-    }
-    
-    // Метод Карнауха (комбинация холодных и горячих чисел)
-    function generateKarnaughNumbers() {
-        const countField1 = Array(20).fill(0);
-        const countField2 = Array(4).fill(0);
-
-        history.forEach(entry => {
-            const parts = entry.split(/\s*\|\s*/);
-            if(parts.length !== 2) return;
-            const nums1 = parts[0].split(',').map(n => parseInt(n));
-            const nums2 = parseInt(parts[1]);
-
-            nums1.forEach(n => {
-                if(n >= 1 && n <= 20) countField1[n - 1]++;
-            });
-            if(nums2 >= 1 && nums2 <= 4) countField2[nums2 - 1]++;
-        });
-
-        if(history.length < 10) {
-            generateColdNumbers();
-            return;
-        }
-        
-        // Сортируем числа по частоте выпадения
-        let numbers1 = Array.from({ length: 20 }, (_, i) => i + 1);
-        numbers1.sort((a, b) => countField1[a - 1] - countField1[b - 1]);
-        
-        // Выбираем 5 холодных и 3 горячих числа
-        const coldNumbers = numbers1.slice(0, 5);
-        const hotNumbers = numbers1.slice(-3).reverse();
-        const selected1 = [...coldNumbers, ...hotNumbers].sort((a, b) => a - b);
-        
-        // Для второго поля выбираем среднее по частоте
-        let numbers2 = Array.from({ length: 4 }, (_, i) => i + 1);
-        numbers2.sort((a, b) => countField2[a - 1] - countField2[b - 1]);
-        const selected2 = numbers2[1] || numbers2[0]; // берем второе по холодности
-        
-        displayNumbers(selected1, selected2, 'karnaugh');
-    }
-    
-    // Случайная генерация
-    function generateRandomNumbers() {
-        const nums1 = [];
-        while(nums1.length < 8) {
-            const n = Math.floor(Math.random() * 20) + 1;
-            if(!nums1.includes(n)) nums1.push(n);
-        }
-        nums1.sort((a, b) => a - b);
-        const n2 = Math.floor(Math.random() * 4) + 1;
-        
-        displayNumbers(nums1, n2, 'random');
-    }
-    
-    // Отображение сгенерированных чисел
-    function displayNumbers(nums1, num2, method = 'cold') {
-        const field1 = document.getElementById('field1');
-        const field2 = document.getElementById('field2');
-        field1.innerHTML = '';
-        field2.innerHTML = '';
-
-        nums1.forEach(n => {
-            const div = document.createElement('div');
-            div.className = 'number';
-            if(method === 'karnaugh' && nums1.indexOf(n) < 5) {
-                div.classList.add('special');
+        // Создание/обновление графика
+        function updateChart() {
+            if (balanceChart) {
+                balanceChart.destroy();
             }
-            div.textContent = n;
-            field1.appendChild(div);
-        });
-        
-        const div2 = document.createElement('div');
-        div2.className = 'number small';
-        if(method === 'ogneva') {
-            div2.classList.add('special');
-        }
-        div2.textContent = num2;
-        field2.appendChild(div2);
-        
-        // Анимация выбора
-        setTimeout(() => {
-            field1.querySelectorAll('.number').forEach(el => {
-                el.classList.add('selected');
+            
+            // Подготовка данных для графика
+            const labels = [];
+            const balanceData = [];
+            let cumulativeBalance = 0;
+            
+            for (let i = 0; i < stats.history.length; i++) {
+                const ticket = stats.history[i];
+                cumulativeBalance += ticket.win.amount - ticket.cost;
+                labels.push(`Билет ${i + 1}`);
+                balanceData.push(cumulativeBalance);
+            }
+            
+            balanceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Баланс (₽)',
+                        data: balanceData,
+                        borderColor: '#1a2a6c',
+                        backgroundColor: 'rgba(26, 42, 108, 0.1)',
+                        borderWidth: 3,
+                        pointRadius: 3,
+                        fill: true,
+                        tension: 0.3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0,0,0,0.1)'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
             });
-            div2.classList.add('selected');
-        }, 100);
-    }
-
-    // --- Инициализация при загрузке ---
-    document.getElementById('genBtn').onclick = generateNumbers;
-    updateStats();
-    generateNumbers();
-</script>
+        }
+        
+        // Экспорт в CSV
+        function exportToCSV() {
+            if (stats.history.length === 0) {
+                alert('Нет данных для экспорта');
+                return;
+            }
+            
+            let csvContent = 'data:text/csv;charset=utf-8,';
+            csvContent += '№,Тираж,Стоимость,1 часть,2 часть,Выигрыш,Сумма выигрыша,Баланс\n';
+            
+            stats.history.forEach((ticket, index) => {
+                const balance = ticket.win.amount - ticket.cost;
+                const row = [
+                    index + 1,
+                    ticket.drawNumber,
+                    ticket.cost,
+                    ticket.first,
+                    ticket.second,
+                    ticket.win.name,
+                    ticket.win.amount,
+                    balance
+                ].join(',');
+                
+                csvContent += row + '\n';
+            });
+            
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement('a');
+            link.setAttribute('href', encodedUri);
+            link.setAttribute('download', 'lottery_stats.csv');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+        
+        // Валидация формы
+        function validateForm() {
+            let isValid = true;
+            
+            const cost = document.getElementById('ticket-cost').value;
+            const drawNumber = document.getElementById('draw-number').value;
+            
+            // Сброс ошибок
+            document.getElementById('cost-error').style.display = 'none';
+            document.getElementById('draw-error').style.display = 'none';
+            
+            // Проверка стоимости
+            if (!cost || isNaN(cost) || Number(cost) <= 0) {
+                document.getElementById('cost-error').style.display = 'block';
+                isValid = false;
+            }
+            
+            // Проверка номера тиража
+            if (!drawNumber || isNaN(drawNumber) || Number(drawNumber) <= 0) {
+                document.getElementById('draw-error').style.display = 'block';
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+        
+        // Инициализация при загрузке
+        document.addEventListener('DOMContentLoaded', () => {
+            // Загрузка данных
+            loadStats();
+            
+            // Обработчики событий
+            document.getElementById('add-stats').addEventListener('click', () => {
+                if (!validateForm()) return;
+                
+                const cost = Number(document.getElementById('ticket-cost').value);
+                const drawNumber = document.getElementById('draw-number').value;
+                const first = document.getElementById('guessed-first').value;
+                const second = document.getElementById('guessed-second').value;
+                
+                const win = calculateWin(first, second);
+                
+                // Обновление статистики
+                stats.ticketsCount++;
+                stats.totalSpent += cost;
+                stats.totalWon += win.amount;
+                
+                // Обновление максимального выигрыша
+                if (win.amount > stats.maxWin) {
+                    stats.maxWin = win.amount;
+                }
+                
+                const ticketData = {
+                    cost,
+                    drawNumber,
+                    first,
+                    second,
+                    win
+                };
+                
+                stats.history.push(ticketData);
+                addToHistory(ticketData);
+                updateStats();
+                updateChart();
+                
+                // Очистка полей
+                document.getElementById('ticket-cost').value = '';
+                document.getElementById('draw-number').value = '';
+                document.getElementById('super-prize').value = '0';
+            });
+            
+            document.getElementById('reset-stats').addEventListener('click', () => {
+                if (confirm('Вы уверены, что хотите сбросить всю статистику?')) {
+                    stats = {
+                        ticketsCount: 0,
+                        totalSpent: 0,
+                        totalWon: 0,
+                        history: [],
+                        maxWin: 0
+                    };
+                    
+                    localStorage.removeItem('lotteryStats');
+                    updateStats();
+                    renderHistory();
+                    updateChart();
+                }
+            });
+            
+            document.getElementById('export-csv').addEventListener('click', exportToCSV);
+            
+            document.getElementById('clear-history').addEventListener('click', () => {
+                if (confirm('Вы уверены, что хотите очистить историю? Данные статистики останутся.')) {
+                    stats.history = [];
+                    stats.ticketsCount = 0;
+                    stats.totalSpent = 0;
+                    stats.totalWon = 0;
+                    stats.maxWin = 0;
+                    saveStats();
+                    updateStats();
+                    renderHistory();
+                    updateChart();
+                }
+            });
+            
+            // Инициализация вероятностей
+            calculateProbabilities();
+        });
+    </script>
 </body>
 </html>
