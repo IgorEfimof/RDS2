@@ -9,7 +9,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Рапидо Старт</title>
     <style>
-        /* Обновлённые стили */
         :root {
             --bg-color: #f5f5f7;
             --text-color: #1c1c1e;
@@ -301,6 +300,53 @@
             margin-left: 5px;
             cursor: help;
         }
+        
+        /* Новые стили для блока выигрышей */
+        .win-stats {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-top: 10px;
+            padding: 10px;
+            background: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            gap: 10px;
+        }
+        .win-stat {
+            text-align: center;
+            flex: 1;
+            min-width: 100px;
+        }
+        .win-stat-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+        .profit-positive {
+            color: var(--selected-color);
+        }
+        .profit-negative {
+            color: var(--secondary-color);
+        }
+        .wins-details {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+        .win-item {
+            padding: 8px 0;
+            border-bottom: 1px solid var(--history-border);
+            font-size: 13px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 5px;
+        }
+        .win-item > span {
+            flex: 1;
+            min-width: 120px;
+        }
     </style>
 </head>
 <body>
@@ -346,6 +392,30 @@
             <h2>История розыгрышей</h2>
             <div id="historyList"></div>
             <button id="clearHistoryBtn" class="secondary">Очистить историю</button>
+        </div>
+        
+        <!-- Новый блок для статистики выигрышей -->
+        <div class="card">
+            <h2>Статистика выигрышей</h2>
+            <div id="winsStats" class="win-stats">
+                <div class="win-stat">
+                    <div>Ставок</div>
+                    <div id="totalBets" class="win-stat-value">0</div>
+                </div>
+                <div class="win-stat">
+                    <div>Потрачено</div>
+                    <div id="totalSpent" class="win-stat-value">0 руб</div>
+                </div>
+                <div class="win-stat">
+                    <div>Выиграно</div>
+                    <div id="totalWon" class="win-stat-value">0 руб</div>
+                </div>
+                <div class="win-stat">
+                    <div>Баланс</div>
+                    <div id="balance" class="win-stat-value">0 руб</div>
+                </div>
+            </div>
+            <div id="winsDetails" class="wins-details"></div>
         </div>
     </div>
 
@@ -416,6 +486,7 @@
             saveHistory();
             renderHistory();
             updateStats();
+            updateWinsStats();
         }
     });
     
@@ -426,12 +497,14 @@
             saveHistory();
             renderHistory();
             updateStats();
+            updateWinsStats();
             generateNumbers();
         }
     };
 
     function saveHistory() {
         localStorage.setItem('rapido2History', JSON.stringify(history));
+        updateWinsStats();
     }
 
     // --- Ввод ---
@@ -784,10 +857,85 @@
             div2.classList.add('selected');
         }, 100);
     }
+    
+    // --- Расчет выигрышей ---
+    function updateWinsStats() {
+        const totalBets = history.length > 1 ? history.length - 1 : 0;
+        const totalSpent = totalBets * 50;
+        let totalWon = 0;
+        let winsDetailsHTML = "";
+        
+        // Рассчитываем выигрыши для каждой ставки
+        for (let i = 1; i < history.length; i++) {
+            const userEntry = history[i];
+            const drawEntry = history[i-1];
+            
+            const [userNums1, userNum2] = parseEntry(userEntry);
+            const [drawNums1, drawNum2] = parseEntry(drawEntry);
+            
+            // Считаем совпадения в поле 1
+            let matches1 = 0;
+            for (const num of userNums1) {
+                if (drawNums1.includes(num)) matches1++;
+            }
+            
+            // Совпадение в поле 2
+            const match2 = userNum2 === drawNum2 ? 1 : 0;
+            
+            // Рассчитываем выигрыш
+            const win = calculateWin(matches1, match2);
+            const winAmount = typeof win === "number" ? win : 0;
+            totalWon += winAmount;
+            
+            // Формируем детализацию
+            winsDetailsHTML += `<div class="win-item">
+                <span>Ставка ${i}: ${userEntry}</span>
+                <span>Выпало: ${drawEntry}</span>
+                <span>Совпадения: ${matches1}|${match2}</span>
+                <span>${typeof win === "string" ? win : win + " руб"}</span>
+            </div>`;
+        }
+        
+        // Обновляем DOM
+        document.getElementById("totalBets").textContent = totalBets;
+        document.getElementById("totalSpent").textContent = `${totalSpent} руб`;
+        document.getElementById("totalWon").textContent = `${totalWon} руб`;
+        
+        const balance = totalWon - totalSpent;
+        const balanceElem = document.getElementById("balance");
+        balanceElem.textContent = `${balance} руб`;
+        balanceElem.className = `win-stat-value ${balance >= 0 ? "profit-positive" : "profit-negative"}`;
+        
+        document.getElementById("winsDetails").innerHTML = winsDetailsHTML || 
+            "<p>Нет данных для расчета. Добавьте минимум 2 записи в историю.</p>";
+    }
+
+    // Функция для расчета выигрыша по совпадениям
+    function calculateWin(matches1, match2) {
+        if (matches1 === 8 && match2 === 1) return "Суперприз";
+        if (matches1 === 8 && match2 === 0) return 25000;
+        if (matches1 === 7 && match2 === 1) return 5000;
+        if (matches1 === 7 && match2 === 0) return 1000;
+        if (matches1 === 6 && match2 === 1) return 175;
+        if (matches1 === 6 && match2 === 0) return 150;
+        if (matches1 === 5 && match2 === 1) return 100;
+        if (matches1 === 5 && match2 === 0) return 50;
+        return 0;
+    }
+
+    // Вспомогательная функция для парсинга записи
+    function parseEntry(entry) {
+        const [part1, part2] = entry.split(/\s*\|\s*/);
+        return [
+            part1.split(",").map(Number),
+            parseInt(part2)
+        ];
+    }
 
     // --- Инициализация при загрузке ---
     document.getElementById('genBtn').onclick = generateNumbers;
     updateStats();
+    updateWinsStats();
     generateNumbers();
 </script>
 </body>
