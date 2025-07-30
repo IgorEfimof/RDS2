@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Статистика лотереи</title>
+    <title>Лотерейный калькулятор с виртуальной клавиатурой</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         * {
@@ -48,7 +48,7 @@
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
         }
         
-        h1, h2 {
+        h1, h2, h3 {
             color: #1a2a6c;
             text-align: center;
             margin-bottom: 20px;
@@ -238,14 +238,148 @@
             padding: 10px;
             font-size: 14px;
         }
+        
+        /* Виртуальная клавиатура */
+        .keyboard-section {
+            margin-bottom: 25px;
+        }
+        
+        .keyboard-title {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #1a2a6c;
+            font-weight: 600;
+        }
+        
+        .keyboard {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .keyboard-button {
+            padding: 12px 0;
+            background: linear-gradient(135deg, #4a6fc5, #1a2a6c);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-align: center;
+        }
+        
+        .keyboard-button:hover {
+            background: linear-gradient(135deg, #5a7fd5, #2a3a9c);
+            transform: scale(1.05);
+        }
+        
+        .keyboard-button.selected {
+            background: linear-gradient(135deg, #fdbb2d, #f46b45);
+            box-shadow: 0 0 0 3px rgba(253, 187, 45, 0.5);
+        }
+        
+        .keyboard-button.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .selection-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #e3f2fd;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        
+        .numbers-display {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            min-height: 40px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        
+        .number-badge {
+            background: linear-gradient(135deg, #1a2a6c, #23348e);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+        
+        .number-badge .remove {
+            margin-left: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .keyboard-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .keyboard-controls button {
+            flex: 1;
+            padding: 10px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
-    <h2>Статистика лотерейных билетов</h2>
+    <h1>Лотерейный калькулятор с виртуальной клавиатурой</h1>
     
     <div class="container">
         <!-- Левая колонка -->
         <div class="left-column">
+            <div class="card">
+                <h2>Виртуальная клавиатура</h2>
+                
+                <div class="keyboard-section">
+                    <h3 class="keyboard-title">Первая часть (1-19)</h3>
+                    <div class="keyboard" id="keyboard-first">
+                        <!-- Кнопки 1-19 будут сгенерированы через JS -->
+                    </div>
+                    <div class="selection-info">
+                        <div>Выбрано: <span id="selected-first-count">0</span> из 8</div>
+                        <div>Осталось: <span id="remaining-first">8</span></div>
+                    </div>
+                    <div class="numbers-display" id="selected-first-display">
+                        <!-- Выбранные числа будут отображаться здесь -->
+                    </div>
+                </div>
+                
+                <div class="keyboard-section">
+                    <h3 class="keyboard-title">Вторая часть (1-2)</h3>
+                    <div class="keyboard" id="keyboard-second">
+                        <!-- Кнопки 1-2 будут сгенерированы через JS -->
+                    </div>
+                    <div class="selection-info">
+                        <div>Выбрано: <span id="selected-second-count">0</span> из 1</div>
+                        <div>Осталось: <span id="remaining-second">1</span></div>
+                    </div>
+                    <div class="numbers-display" id="selected-second-display">
+                        <!-- Выбранное число будет отображаться здесь -->
+                    </div>
+                </div>
+                
+                <div class="keyboard-controls">
+                    <button id="random-btn" class="secondary-btn">Случайные числа</button>
+                    <button id="clear-btn">Очистить</button>
+                </div>
+            </div>
+            
             <div class="card">
                 <h2>Данные билета</h2>
                 <div class="input-group">
@@ -261,29 +395,6 @@
                 </div>
                 
                 <div class="input-group">
-                    <label for="guessed-first">Угадано чисел в 1-й части поля:</label>
-                    <select id="guessed-first">
-                        <option value="0">0</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                        <option value="6">6</option>
-                        <option value="7">7</option>
-                        <option value="8">8</option>
-                    </select>
-                </div>
-                
-                <div class="input-group">
-                    <label for="guessed-second">Угадано чисел во 2-й части поля:</label>
-                    <select id="guessed-second">
-                        <option value="0">0</option>
-                        <option value="1">1</option>
-                    </select>
-                </div>
-                
-                <div class="input-group">
                     <label for="super-prize">Сумма суперприза (если есть):</label>
                     <input type="number" id="super-prize" placeholder="Введите сумму суперприза" min="0" value="0">
                 </div>
@@ -292,6 +403,33 @@
                 <button id="reset-stats" class="secondary-btn">Сбросить статистику</button>
             </div>
             
+            <div class="card">
+                <h2>Таблица призов</h2>
+                <table class="prize-table">
+                    <thead>
+                        <tr>
+                            <th>1-я часть</th>
+                            <th>2-я часть</th>
+                            <th>Выигрыш</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>8</td><td>1</td><td>Суперприз</td></tr>
+                        <tr><td>8</td><td>0</td><td>25 000 ₽</td></tr>
+                        <tr><td>7</td><td>1</td><td>5 000 ₽</td></tr>
+                        <tr><td>7</td><td>0</td><td>1 000 ₽</td></tr>
+                        <tr><td>6</td><td>1</td><td>175 ₽</td></tr>
+                        <tr><td>6</td><td>0</td><td>150 ₽</td></tr>
+                        <tr><td>5</td><td>1</td><td>100 ₽</td></tr>
+                        <tr><td>5</td><td>0</td><td>50 ₽</td></tr>
+                        <tr><td>4</td><td>1</td><td>25 ₽</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Правая колонка -->
+        <div class="right-column">
             <div class="card">
                 <h2>Основная статистика</h2>
                 <div class="stats-grid">
@@ -333,33 +471,6 @@
                 </div>
             </div>
             
-            <div class="card">
-                <h2>Таблица призов</h2>
-                <table class="prize-table">
-                    <thead>
-                        <tr>
-                            <th>1-я часть</th>
-                            <th>2-я часть</th>
-                            <th>Выигрыш</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>8</td><td>1</td><td>Суперприз</td></tr>
-                        <tr><td>8</td><td>0</td><td>25 000 ₽</td></tr>
-                        <tr><td>7</td><td>1</td><td>5 000 ₽</td></tr>
-                        <tr><td>7</td><td>0</td><td>1 000 ₽</td></tr>
-                        <tr><td>6</td><td>1</td><td>175 ₽</td></tr>
-                        <tr><td>6</td><td>0</td><td>150 ₽</td></tr>
-                        <tr><td>5</td><td>1</td><td>100 ₽</td></tr>
-                        <tr><td>5</td><td>0</td><td>50 ₽</td></tr>
-                        <tr><td>4</td><td>1</td><td>25 ₽</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        <!-- Правая колонка -->
-        <div class="right-column">
             <div class="card">
                 <h2>График баланса</h2>
                 <div class="canvas-container">
@@ -424,7 +535,7 @@
     </div>
     
     <div class="footer">
-        Статистика лотерейных билетов &copy; 2023 | Данные сохраняются в вашем браузере
+        Лотерейный калькулятор &copy; 2023 | Данные сохраняются в вашем браузере
     </div>
 
     <script>
@@ -486,6 +597,193 @@
         const currentLossEl = document.getElementById('current-loss');
         const probTicketsEl = document.getElementById('prob-tickets');
         const probTickets90El = document.getElementById('prob-tickets-90');
+        
+        // Данные для виртуальной клавиатуры
+        let selectedFirstNumbers = [];
+        let selectedSecondNumbers = [];
+        
+        // Инициализация виртуальной клавиатуры
+        function initKeyboards() {
+            const keyboardFirst = document.getElementById('keyboard-first');
+            const keyboardSecond = document.getElementById('keyboard-second');
+            
+            // Создание кнопок для первой части (1-19)
+            for (let i = 1; i <= 19; i++) {
+                const button = document.createElement('button');
+                button.className = 'keyboard-button';
+                button.textContent = i;
+                button.dataset.number = i;
+                button.addEventListener('click', () => toggleFirstNumber(i));
+                keyboardFirst.appendChild(button);
+            }
+            
+            // Создание кнопок для второй части (1-2)
+            for (let i = 1; i <= 2; i++) {
+                const button = document.createElement('button');
+                button.className = 'keyboard-button';
+                button.textContent = i;
+                button.dataset.number = i;
+                button.addEventListener('click', () => toggleSecondNumber(i));
+                keyboardSecond.appendChild(button);
+            }
+            
+            // Обновляем отображение выбранных чисел
+            updateSelectedNumbersDisplay();
+        }
+        
+        // Переключение числа в первой части
+        function toggleFirstNumber(number) {
+            const index = selectedFirstNumbers.indexOf(number);
+            
+            if (index > -1) {
+                // Если число уже выбрано, удаляем его
+                selectedFirstNumbers.splice(index, 1);
+            } else {
+                // Если выбрано уже 8 чисел, удаляем первое выбранное
+                if (selectedFirstNumbers.length >= 8) {
+                    selectedFirstNumbers.shift();
+                }
+                // Добавляем новое число
+                selectedFirstNumbers.push(number);
+            }
+            
+            updateSelectedNumbersDisplay();
+        }
+        
+        // Переключение числа во второй части
+        function toggleSecondNumber(number) {
+            const index = selectedSecondNumbers.indexOf(number);
+            
+            if (index > -1) {
+                // Если число уже выбрано, удаляем его
+                selectedSecondNumbers.splice(index, 1);
+            } else {
+                // Если выбрано уже 1 число, удаляем его
+                if (selectedSecondNumbers.length >= 1) {
+                    selectedSecondNumbers = [];
+                }
+                // Добавляем новое число
+                selectedSecondNumbers.push(number);
+            }
+            
+            updateSelectedNumbersDisplay();
+        }
+        
+        // Обновление отображения выбранных чисел
+        function updateSelectedNumbersDisplay() {
+            const firstDisplay = document.getElementById('selected-first-display');
+            const secondDisplay = document.getElementById('selected-second-display');
+            
+            // Обновляем счетчики
+            document.getElementById('selected-first-count').textContent = selectedFirstNumbers.length;
+            document.getElementById('selected-second-count').textContent = selectedSecondNumbers.length;
+            document.getElementById('remaining-first').textContent = 8 - selectedFirstNumbers.length;
+            document.getElementById('remaining-second').textContent = 1 - selectedSecondNumbers.length;
+            
+            // Очищаем отображение
+            firstDisplay.innerHTML = '';
+            secondDisplay.innerHTML = '';
+            
+            // Отображаем выбранные числа для первой части
+            selectedFirstNumbers.forEach(num => {
+                const badge = document.createElement('div');
+                badge.className = 'number-badge';
+                badge.innerHTML = `${num} <span class="remove" onclick="removeFirstNumber(${num})">×</span>`;
+                firstDisplay.appendChild(badge);
+            });
+            
+            // Отображаем выбранные числа для второй части
+            selectedSecondNumbers.forEach(num => {
+                const badge = document.createElement('div');
+                badge.className = 'number-badge';
+                badge.innerHTML = `${num} <span class="remove" onclick="removeSecondNumber(${num})">×</span>`;
+                secondDisplay.appendChild(badge);
+            });
+            
+            // Обновляем состояние кнопок клавиатуры
+            updateKeyboardButtons();
+        }
+        
+        // Удаление числа из первой части
+        function removeFirstNumber(number) {
+            const index = selectedFirstNumbers.indexOf(number);
+            if (index > -1) {
+                selectedFirstNumbers.splice(index, 1);
+                updateSelectedNumbersDisplay();
+            }
+        }
+        
+        // Удаление числа из второй части
+        function removeSecondNumber(number) {
+            const index = selectedSecondNumbers.indexOf(number);
+            if (index > -1) {
+                selectedSecondNumbers.splice(index, 1);
+                updateSelectedNumbersDisplay();
+            }
+        }
+        
+        // Обновление состояния кнопок клавиатуры
+        function updateKeyboardButtons() {
+            // Обновляем кнопки первой части
+            const firstButtons = document.querySelectorAll('#keyboard-first .keyboard-button');
+            firstButtons.forEach(button => {
+                const num = parseInt(button.dataset.number);
+                if (selectedFirstNumbers.includes(num)) {
+                    button.classList.add('selected');
+                } else {
+                    button.classList.remove('selected');
+                }
+                
+                // Отключаем кнопки, если уже выбрано 8 чисел
+                if (selectedFirstNumbers.length >= 8 && !selectedFirstNumbers.includes(num)) {
+                    button.classList.add('disabled');
+                } else {
+                    button.classList.remove('disabled');
+                }
+            });
+            
+            // Обновляем кнопки второй части
+            const secondButtons = document.querySelectorAll('#keyboard-second .keyboard-button');
+            secondButtons.forEach(button => {
+                const num = parseInt(button.dataset.number);
+                if (selectedSecondNumbers.includes(num)) {
+                    button.classList.add('selected');
+                } else {
+                    button.classList.remove('selected');
+                }
+                
+                // Отключаем кнопки, если уже выбрано 1 число
+                if (selectedSecondNumbers.length >= 1 && !selectedSecondNumbers.includes(num)) {
+                    button.classList.add('disabled');
+                } else {
+                    button.classList.remove('disabled');
+                }
+            });
+        }
+        
+        // Генерация случайных чисел
+        function generateRandomNumbers() {
+            // Генерируем 8 уникальных случайных чисел для первой части (1-19)
+            selectedFirstNumbers = [];
+            while (selectedFirstNumbers.length < 8) {
+                const randomNum = Math.floor(Math.random() * 19) + 1;
+                if (!selectedFirstNumbers.includes(randomNum)) {
+                    selectedFirstNumbers.push(randomNum);
+                }
+            }
+            
+            // Генерируем 1 случайное число для второй части (1-2)
+            selectedSecondNumbers = [Math.floor(Math.random() * 2) + 1];
+            
+            updateSelectedNumbersDisplay();
+        }
+        
+        // Очистка всех выбранных чисел
+        function clearAllNumbers() {
+            selectedFirstNumbers = [];
+            selectedSecondNumbers = [];
+            updateSelectedNumbersDisplay();
+        }
         
         // Загрузка данных из localStorage
         function loadStats() {
@@ -772,11 +1070,25 @@
                 isValid = false;
             }
             
+            // Проверка выбранных чисел
+            if (selectedFirstNumbers.length !== 8) {
+                alert('Выберите 8 чисел в первой части!');
+                isValid = false;
+            }
+            
+            if (selectedSecondNumbers.length !== 1) {
+                alert('Выберите 1 число во второй части!');
+                isValid = false;
+            }
+            
             return isValid;
         }
         
         // Инициализация при загрузке
         document.addEventListener('DOMContentLoaded', () => {
+            // Инициализация клавиатуры
+            initKeyboards();
+            
             // Загрузка данных
             loadStats();
             
@@ -786,10 +1098,10 @@
                 
                 const cost = Number(document.getElementById('ticket-cost').value);
                 const drawNumber = document.getElementById('draw-number').value;
-                const first = document.getElementById('guessed-first').value;
-                const second = document.getElementById('guessed-second').value;
+                const first = selectedFirstNumbers.join(', ');
+                const second = selectedSecondNumbers.join(', ');
                 
-                const win = calculateWin(first, second);
+                const win = calculateWin(selectedFirstNumbers.length, selectedSecondNumbers.length);
                 
                 // Обновление статистики
                 stats.ticketsCount++;
@@ -818,6 +1130,9 @@
                 document.getElementById('ticket-cost').value = '';
                 document.getElementById('draw-number').value = '';
                 document.getElementById('super-prize').value = '0';
+                
+                // Очистка выбранных чисел
+                clearAllNumbers();
             });
             
             document.getElementById('reset-stats').addEventListener('click', () => {
@@ -853,9 +1168,17 @@
                 }
             });
             
+            // Обработчики кнопок клавиатуры
+            document.getElementById('random-btn').addEventListener('click', generateRandomNumbers);
+            document.getElementById('clear-btn').addEventListener('click', clearAllNumbers);
+            
             // Инициализация вероятностей
             calculateProbabilities();
         });
+        
+        // Сделаем функции доступными глобально для обработчиков удаления
+        window.removeFirstNumber = removeFirstNumber;
+        window.removeSecondNumber = removeSecondNumber;
     </script>
 </body>
 </html>
